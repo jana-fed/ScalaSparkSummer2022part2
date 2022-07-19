@@ -18,7 +18,7 @@ object Day17HelloSpark extends App {
   //TODO filter into numbers divisible by 10
 
   val divisibleBy10 = rangeOfNumbers.where("number % 10 = 0")
-  //TODO show the results
+  //TODO show the results`
   divisibleBy10.show(10)
 
   spark.stop() //or .close() if you want to stop the Spark engine before the program stops running
