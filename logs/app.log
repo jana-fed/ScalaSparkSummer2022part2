@@ -9,3 +9,11 @@
 2022-07-19 20:52:52,958 WARN o.a.s.e.ProcfsMetricsGetter [driver-heartbeater] Exception when trying to compute pagesize, as a result reporting of ProcessTree metrics is stopped
 2022-07-19 20:55:04,546 WARN o.a.h.u.Shell [main] Did not find winutils.exe: java.io.FileNotFoundException: java.io.FileNotFoundException: HADOOP_HOME and hadoop.home.dir are unset. -see https://wiki.apache.org/hadoop/WindowsProblems
 2022-07-19 20:55:04,582 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:06:44,825 WARN o.a.h.u.Shell [main] Did not find winutils.exe: java.io.FileNotFoundException: java.io.FileNotFoundException: HADOOP_HOME and hadoop.home.dir are unset. -see https://wiki.apache.org/hadoop/WindowsProblems
+2022-07-24 22:06:44,865 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:09:22,720 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:09:58,689 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:14:42,418 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:16:18,214 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:19:03,597 WARN o.a.h.u.NativeCodeLoader [main] Unable to load native-hadoop library for your platform... using builtin-java classes where applicable
+2022-07-24 22:19:16,018 WARN o.a.s.e.ProcfsMetricsGetter [driver-heartbeater] Exception when trying to compute pagesize, as a result reporting of ProcessTree metrics is stopped
