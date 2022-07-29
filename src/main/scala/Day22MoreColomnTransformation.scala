@@ -1,6 +1,7 @@
 
+
 import org.apache.spark.sql.{DataFrame, Dataset, Row}
-import org.apache.spark.sql.functions.col
+import org.apache.spark.sql.functions.{asc, col, desc, expr}
 
 import scala.util.Random
 
@@ -14,7 +15,8 @@ object Day22MoreColumnTransformations extends App {
   //there are many configuration settings you can set at runtime using the above syntax
   //https://spark.apache.org/docs/latest/configuration.html
 
-  val flightPath = "src/resources/flight-data/json/2015-summary.json"
+  //  val flightPath = "src/resources/flight-data/json/2015-summary.json"
+  val flightPath = "src/resources/flight-data/json/2014-summary.json"
 
   //so automatic detection of schema
   val df = spark.read.format("json")
@@ -94,35 +96,35 @@ object Day22MoreColumnTransformations extends App {
   //replacement:
 
   //  val seed = 42 //so static seed should guarantte same sample each time
-  val seed = Random.nextInt() //so up to 4 billion different integers
-  val withReplacement = false
-  //if you set withReplacement true, that means you will be putting your row sampled back into the cookie jar
-  //https://stackoverflow.com/questions/53689047/what-does-withreplacement-do-if-specified-for-sample-against-a-spark-dataframe
-  //usually you do not want to draw the same ticket more than once
-  val fraction = 0.1 //so 10 % is just a rough estimate, for smaller datasets such as ours
-  //Note:
-  //This is NOT guaranteed to provide exactly the fraction of the count of the given Dataset.
-
-  val dfSample = df.sample(withReplacement, fraction, seed)
-  dfSample.show(5)
-  println(s"We got ${dfSample.count()} samples")
+  //  val seed = Random.nextInt() //so up to 4 billion different integers
+  //  val withReplacement = false
+  //  //if you set withReplacement true, that means you will be putting your row sampled back into the cookie jar
+  //  //https://stackoverflow.com/questions/53689047/what-does-withreplacement-do-if-specified-for-sample-against-a-spark-dataframe
+  //  //usually you do not want to draw the same ticket more than once
+  //  val fraction = 0.1 //so 10 % is just a rough estimate, for smaller datasets such as ours
+  //  //Note:
+  //  //This is NOT guaranteed to provide exactly the fraction of the count of the given Dataset.
+  //
+  //  val dfSample = df.sample(withReplacement, fraction, seed)
+  //  dfSample.show(5)
+  //  println(s"We got ${dfSample.count()} samples")
 
   // in Scala
   //we get Array of Dataset[Row] which is same as Array[DataFrame]
   //so split 25 percent and 75 percent roughly again not exact!
-  val dataFrames = df.randomSplit(Array(0.25, 0.75), seed)
-
-  for ((dFrame, i) <- dataFrames.zipWithIndex) { //we could have used df or anything else instead of dFrame
-    println(s"DataFrame No. $i has ${dFrame.count} rows")
-  }
-
-  def getDataFrameStats(dFrames:Array[Dataset[Row]], df:DataFrame): Array[Long] = {
-    dFrames.map(d => d.count() * 100 / df.count())
-  }
-
-  val dPercentages= getDataFrameStats(dataFrames, df)
-  println("DataFrame percentages")
-  dPercentages.foreach(println)
+  //  val dataFrames = df.randomSplit(Array(0.25, 0.75), seed)
+  //
+  //  for ((dFrame, i) <- dataFrames.zipWithIndex) { //we could have used df or anything else instead of dFrame
+  //    println(s"DataFrame No. $i has ${dFrame.count} rows")
+  //  }
+  //
+  //  def getDataFrameStats(dFrames:Array[Dataset[Row]], df:DataFrame): Array[Long] = {
+  //    dFrames.map(d => d.count() * 100 / df.count())
+  //  }
+  //
+  //  val dPercentages= getDataFrameStats(dataFrames, df)
+  //  println("DataFrame percentages")
+  //  dPercentages.foreach(println)
 
   //so now the proportion should be roughly 2/5 to the first dataframe and 3/5 to the 2nd
   //so randomSplit will normalize 2,3 to 0.4, 0.6
@@ -130,39 +132,172 @@ object Day22MoreColumnTransformations extends App {
   getDataFrameStats(dFrames23split, df).foreach(println)
 
   //TODO open up 2014-summary.json file
-  val flightPath2014 = "src/resources/flight-data/json/2014-summary.json"
 
-  val df2 = spark.read.format("json")
-    .load(flightPath2014)
+  //TODO Task 1 - Filter only flights FROM US thathappened more than 10 times
+  // TODO filter flights FROM US that happened more than 10 times
 
-  df2.show(5)
-
-  //TODO Task 1 - Filter only flights FROM US that happened more than 10 times
-
-  df2.where("count > 10 AND ORIGIN_COUNTRY_NAME = 'United States'").show(5) //works but better to chain multiple filters for optimization
+  df.where("ORIGIN_COUNTRY_NAME = 'United States'")
+    .where("count > 10")
+    .show()
 
   //TODO Task 2 - I want a random sample from all 2014 of roughly 30 percent, you can use a fixed seed
   //subtask I want to see the actual row count
+  println(s"We have ${df.count()} rows/records in 2014")
+  val seed = 5 //can use random number if you want random drawing, specific seed will be fixed each time
+  val withReplacement = false //we do not put the samples back into the cookie jar/lotto jar
+  val fraction = 0.3 //so 30% ?
 
-  val fraction2 = 0.3
+  //neither of these 2 approaches seem to help
+  //  df.cache() //so we will try caching the values
+  //  //suggestion from https://medium.com/udemy-engineering/pyspark-under-the-hood-randomsplit-and-sample-inconsistencies-examined-7c6ec62644bc
+  val dfRepartition = df.repartition(1, col("count")) //single partition DF
 
-  val dfSample2014 = df2.sample(withReplacement, fraction2, seed)
+  val dfSample = dfRepartition.sample(withReplacement, fraction, seed)
+
   dfSample.show(5)
   println(s"We got ${dfSample.count()} samples")
+  val dfSamplePercentage = dfSample.count()*100.0 / df.count()
+  println(s"Actual percentage is $dfSamplePercentage")
 
   //TODO Task 3 - I want a split of full 2014 dataframe into 3 Dataframes with the following proportions 2,9, 5
   //subtask I want to see the row count for these dataframes and percentages
 
-  val df2Split = df2.randomSplit(Array(2,9,5), seed)
-  getDataFrameStats(df2Split, df2).foreach(println)
+  //TODO Task 3 - I want a split of full 2014 dataframe into 3 Dataframes with the following proportions 2,9, 5
+  val dataFrames = dfRepartition.randomSplit(Array(2,5,9), seed)
 
-  for ((dFrame, i) <- df2Split.zipWithIndex) {
-    println(s"DataFrame No. $i has ${dFrame.count} rows")
+  def getDataFrameStats(dFrames:Array[Dataset[Row]], df:DataFrame): Array[Double] = {
+    dFrames.map(d => d.count() * 100.0 / df.count())
+  }
+  println("Percentages for 2/5/9 split so 16 total parts")
+  println(s"Expected percentages ${2.0*100/16} / ${5.0*100/16} / ${9.0*100/16}")
+  getDataFrameStats(dataFrames, df).foreach(println)
+  //subtask I want to see the row count for these dataframes and percentages
+
+  for ((dFrame, i) <- dataFrames.zipWithIndex) {
+    (println(s"$i dataframe consists of ${dFrame.count} rows"))
   }
 
-  val df2precentage= getDataFrameStats(df2Split, df2)
-  println("DataFrame percentages")
-  df2precentage.foreach(println)
+  //Concatenating and Appending Rows (Union)
+  //As you learned in the previous section, DataFrames are immutable. This means users cannot
+  //append to DataFrames because that would be changing it. To append to a DataFrame, you must
+  //union the original DataFrame along with the new DataFrame. This just concatenates the two
+  //DataFramess. To union two DataFrames, you must be sure that they have the same schema and
+  //number of columns; otherwise, the union will fail.
+
+  val unionFirstTwo = dataFrames.head.union(dataFrames(1)) //so union of first and second from our split
+  unionFirstTwo.show(5)
+  println(s"Size of Union of two Dataframes is ${unionFirstTwo.count()}")
+
+
+  //we can create some Rows -> DF by hand like before
+  val schema = df.schema //so we save a copy of original dataframe schema
+  df.printSchema()
+  //now all we need to do is match the column data types
+  val newRows = Seq(
+    Row("New Country", "Other Country", 5L), //so long because that is what schema demands
+    Row("New Country 2", "Other Country 3", 1L)
+  )
+  val parallelizedRows = spark.sparkContext.parallelize(newRows)
+  val newDF = spark.createDataFrame(parallelizedRows, schema)
+
+  df.union(newDF) //so our unionized dataframe is ready here - we are not saving it
+    .where("count = 1")
+    .where(col("ORIGIN_COUNTRY_NAME") =!= "United States")
+    .show()
+
+  //Sorting Rows
+  //When we sort the values in a DataFrame, we always want to sort with either the largest or
+  //smallest values at the top of a DataFrame. There are two equivalent operations to do this sort
+  //and orderBy that work the exact same way. They accept both column expressions and strings as
+  //well as multiple columns. The default is to sort in ascending orde
+
+  df.sort("count").show(5)
+  //we have a lot of flight counts with value 1 so we could use a 2nd tiebreak
+  //so when you have two columns 2nd one is the tiebreak so here alphabetical
+  df.orderBy("count", "DEST_COUNTRY_NAME").show(5)
+  df.orderBy(col("count"), col("DEST_COUNTRY_NAME")).show(5) //this one I would skip
+
+  //To more explicitly specify sort direction, you need to use the asc and desc functions if operating
+  //on a column. These allow you to specify the order in which a given column should be sorted
+
+  df.orderBy(expr("count desc")).show(5) //FIXME so here desc modifier is not working
+  //good riddance if it does not work
+  df.orderBy(desc("count")).show(5)
+  //so since descending counts are different at the beginning onlly the tiny counts (1 or 2 wor say 5 would have tiebreaks)
+  //you would expect all 3 of these to be exactly the same
+  df.orderBy(desc("count"), asc("DEST_COUNTRY_NAME")).show(5)
+  //you can add more sorting columns(more tiebreaks)
+
+  //Day 23 finishing on Limits and Collect and Coalesce
+  //remember most SPARK commands and operations can be done using SQL syntax
+  //all you need to do is to create a temporary view
+  //there should be no perfomance penalty
+  df.createOrReplaceTempView("dfTable") //Temp View is required to run Spark SQL
+  spark.sql("SELECT * FROM dfTable " +
+    "ORDER BY count DESC").show(5)
+
+  //Limit
+  //Oftentimes, you might want to restrict what you extract from a DataFrame; for example, you
+  //might want just the top ten of some DataFrame. You can do this by using the limit method
+
+  // in Scala
+  df.limit(5).show() //so only 5 results will be shown
+
+  spark.sql("SELECT * FROM dfTable LIMIT 3").show(5) //only 3 should be shown
+
+  //Repartition and Coalesce
+  //Another important optimization opportunity is to partition the data according to some frequently
+  //filtered columns, which control the physical layout of data across the cluster including the
+  //partitioning scheme and the number of partitions.
+  //Repartition will incur a full shuffle of the data, regardless of whether one is necessary. This
+  //means that you should typically only repartition when the future number of partitions is greater
+  //than your current number of partitions or when you are looking to partition by a set of columns:
+
+  println(s"We have partition count: ${df.rdd.getNumPartitions}")
+
+  //If you know that you’re going to be filtering by a certain column often, it can be worth
+  //repartitioning based on that column:
+  val newDFsinglePart = df.repartition(5, col("DEST_COUNTRY_NAME"))
+  println(s"We have partition count: ${df.rdd.getNumPartitions}")
+  println(s"We have partition count: ${newDFsinglePart.rdd.getNumPartitions}")
+
+  //Coalesce, on the other hand, will not incur a full shuffle and will try to combine partitions. This
+  //operation will shuffle your data into five partitions based on the destination country name, and
+  //then coalesce them (without a full shuffle)
+  val dfCoalesced2 = df.repartition(10, col("DEST_COUNTRY_NAME")).coalesce(2)
+  println(s"We have partition count: ${df.rdd.getNumPartitions}") //should be still 1
+  println(s"We have partition count: ${dfCoalesced2.rdd.getNumPartitions}") //should be 2
+  //again with a single machine there is not much point in partitions this is meant for actual deployments over multiple machines
+
+
+  //Collecting Rows to the Driver
+  //As discussed in previous chapters, Spark maintains the state of the cluster in the driver. There are
+  //times when you’ll want to collect some of your data to the driver in order to manipulate it on
+  //your local machine.
+  //Thus far, we did not explicitly define this operation. However, we used several different methods
+  //for doing so that are effectively all the same.
+  //
+  // collect gets all data from the entire DataFrame,
+  //take selects the first N rows,
+  // and show prints out a number of rows nicely.
+
+  val collectDF = df.limit(10) //we do not have the date locally here this is just an instruction
+  val arrRow5 = collectDF.take(5) // take works with an Integer count
+  //Returns the first n rows in the Dataset.
+  //Running take requires moving data into the application's driver process, and doing so with a very large n can crash the driver process with OutOfMemoryError.
+
+  collectDF.show() // this prints it out nicely
+  collectDF.show(5, false) //also prints and keeps long strings inside cells for show
+
+  val arrRow10 = collectDF.collect() //Returns an array that contains all rows in this Dataset.
+  // Running collect requires moving all the data into the application's driver process,
+  // and doing so on a very large dataset can crash the driver process with OutOfMemoryError.
+
+  //now that we have data locally we can do whatever we want using standard Scala code
+  arrRow5.foreach(println)
+  println("All 10")
+  arrRow10.foreach(println)
+
+
 
 }
-
