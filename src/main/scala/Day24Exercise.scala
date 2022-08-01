@@ -32,8 +32,8 @@ object Day24Exercise extends App {
 
   df.where(col("Description").contains("METAL").or(col("Description").contains("WOOD"))).
     select(
-    regexp_replace(col("Description"), "metal", "material").alias("metal"),
-    regexp_replace(col("Description"),"wood", "material").alias("wood"),
+    regexp_replace(col("Description"), "METAL", "MATERIAL").alias("metal"),
+    regexp_replace(col("Description"),"WOOD", "MATERIAL").alias("wood"),
     col("Description"))
     .show(10, false)
 
