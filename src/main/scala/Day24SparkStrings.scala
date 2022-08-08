@@ -1,5 +1,5 @@
 
-import SparkUtil.{getSpark, readCSVWithView}
+import SparkUtil.{getSpark, readDataWithView}
 import org.apache.spark.sql.functions.{col, initcap, lit, lower, lpad, ltrim, regexp_replace, rpad, rtrim, trim, upper}
 
 object Day24SparkStrings extends App {
@@ -8,7 +8,7 @@ object Day24SparkStrings extends App {
 
   val filePath = "src/resources/retail-data/by-day/2010-12-01.csv"
 
-  val df = readCSVWithView(spark, filePath)
+  val df = readDataWithView(spark, filePath)
 
   //Working with Strings
   //String manipulation shows up in nearly every data flow, and it’s worth explaining what you can

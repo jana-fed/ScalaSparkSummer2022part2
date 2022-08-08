@@ -1,4 +1,4 @@
-import SparkUtil.{getSpark, readCSVWithView}
+import SparkUtil.{getSpark, readDataWithView}
 import org.apache.spark.sql.functions.{col, initcap, lit, lower, lpad, ltrim, regexp_replace, rpad, rtrim, trim, upper}
 
 object Day24Exercise extends App {
@@ -8,7 +8,7 @@ object Day24Exercise extends App {
   val filePath = "src/resources/retail-data/by-day/2011-03-01.csv"
   //TODO open up March 1st, of 2011 CSV
 
-  val df = readCSVWithView(spark, filePath)
+  val df = readDataWithView(spark, filePath)
 
 
   //Select Capitalized Description Column
