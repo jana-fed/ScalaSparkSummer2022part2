@@ -2,13 +2,13 @@
 
 import SparkUtil.{getSpark, readDataWithView}
 import org.apache.spark.sql.expressions.Window
-import org.apache.spark.sql.functions.{asc, col, dense_rank, desc, max, min, rank, to_date, to_timestamp}
+import org.apache.spark.sql.functions.{asc, col, dense_rank, desc, max, rank, to_date, to_timestamp}
 
 object Day29WindowFunctions extends App {
   println("Ch7: Window Functions")
   val spark = getSpark("Sparky")
 
-  //  val filePath = "src/resources/retail-data/by-day/2010-12-01.csv" //here it is a single file but wildcard should still work
+//  val filePath = "src/resources/retail-data/by-day/2010-12-01.csv" //here it is a single file but wildcard should still work
   val filePath = "src/resources/retail-data/all/*.csv"
   val df = readDataWithView(spark, filePath)
   df.show(3)
@@ -37,9 +37,9 @@ object Day29WindowFunctions extends App {
   //https://spark.apache.org/docs/latest/sql-ref-datetime-pattern.html
 
   spark.sql("set spark.sql.legacy.timeParserPolicy=LEGACY")
-  //  val dfWithDate = df.withColumn("date", to_date(to_timestamp(col("InvoiceDate")),
+//  val dfWithDate = df.withColumn("date", to_date(to_timestamp(col("InvoiceDate")),
   val dfWithDate = df.withColumn("date", to_date(col("InvoiceDate"),
-    //    "M/D/y H:mm")) //newere format
+//    "M/D/y H:mm")) //newere format
     "MM/d/yyyy H:mm")) //legacy formatting
   dfWithDate.createOrReplaceTempView("dfWithDate")
 
@@ -78,7 +78,7 @@ object Day29WindowFunctions extends App {
   //finally we are ready to get some rankings!
 
   dfWithDate.where("CustomerId IS NOT NULL")
-    //    .orderBy("CustomerId")
+//    .orderBy("CustomerId")
     .orderBy(desc("date"), desc("CustomerId")) //so 2nd tiebreak would be CustomerId
     .select(
       col("CustomerId"),
@@ -120,35 +120,14 @@ object Day29WindowFunctions extends App {
   //TODO create WindowSpec which partitions by StockCode and date, ordered by Price
   //with rows unbounded preceding and current row
 
-  val windowSpec2 = Window
-    .partitionBy("StockCode", "date")
-    .orderBy(col("UnitPrice").desc)
-    .rowsBetween(Window.unboundedPreceding, Window.currentRow)
-
   //create max min dense rank and rank for the price over the newly created WindowSpec
-  val maxPurchasePrice = max(col("UnitPrice")).over(windowSpec2)
-  val minPurchasePrice = min(col("UnitPrice")).over(windowSpec2)
-
-  val priceDenseRank = dense_rank().over(windowSpec2)
-  val priceRank = rank().over(windowSpec2)
 
   //show top 40 results ordered in descending order by StockCode and price
   //show max, min, dense rank and rank for every row as well using our newly created columns(min, max, dense rank and rank)
-  dfWithDate.where("StockCode IS NOT NULL")
-    .orderBy(desc("StockCode"), desc("UnitPrice")) //so 2nd tiebreak would be CustomerId
-    .select(
-      col("StockCode"),
-      col("date"),
-      col("UnitPrice"),
-      priceRank.alias("priceRank"),
-      priceDenseRank.alias("priceDenseRank"),
-      maxPurchasePrice.alias("maxPurchasePrice"),
-      minPurchasePrice.alias("minPurchasePrice"))
-    .show(40, false)
+
   //you can use spark api functions
   //or you can use spark sql
 
 
 
 }
-
