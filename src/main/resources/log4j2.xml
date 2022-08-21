@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--<Configuration status="DEBUG">-->
+<!--actual level of debugging for log4j2 itself-->
 <Configuration status="warn">
 <!--    https://mkyong.com/logging/log4j2-xml-example/-->
     <Appenders>
@@ -20,7 +21,7 @@
 <!--        <Logger name="com.github.valrcs" level="info" additivity="false">-->
 <!--        <Logger name="com.github.valrcs" level="warn" additivity="false">-->
 <!--        <Logger name="com.github.valrcs" level="error" additivity="false">-->
-        <Logger name="jana" level="warn" additivity="false">
+        <Logger name="com.github.valrcs" level="warn" additivity="false">
             <AppenderRef ref="LogToFile"/>
             <AppenderRef ref="LogToConsole"/>
         </Logger>
