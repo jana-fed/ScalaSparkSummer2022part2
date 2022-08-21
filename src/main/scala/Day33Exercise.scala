@@ -34,6 +34,7 @@ val spark = getSpark("sparky")
     .setLabelCol("MYlabel") //default is label which is usually fine
 
   val outputAgain = sillyFormula.fit(df).transform(df)
-  output
+  outputAgain
+
     .show()
 }
